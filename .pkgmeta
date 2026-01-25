@@ -1,0 +1,5 @@
+package-as: Asa_DataTexts
+
+ignore:
+    - README.md
+    - .gitignore

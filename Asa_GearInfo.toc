@@ -1,0 +1,13 @@
+## Interface: 120000
+## Title: |cFF047857Asa|r Suite: GearInfo
+## Category-enUS: |cFF047857Asa|r Suite
+## Notes: Provides information about Ilvl, Durability, Enchants and Gems on the character window.
+## Author: Asaranth
+## Version: 1.0.0
+## SavedVariables: AGI_DB
+## IconTexture: Interface\AddOns\BetterCooldownManager\Media\logo.png
+## X-Curse-Project-ID: 1444684
+
+embeds.xml
+Core.lua
+Settings.lua
