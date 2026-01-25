@@ -5,7 +5,7 @@
 ## Author: Asaranth
 ## Version: 1.0.0
 ## SavedVariables: AGI_DB
-## IconTexture: Interface\AddOns\BetterCooldownManager\Media\logo.png
+## IconTexture: Interface\AddOns\Asa_GearInfo\Media\logo.png
 ## X-Curse-Project-ID: 1444684
 
 embeds.xml
