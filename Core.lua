@@ -1,21 +1,43 @@
 local addonName, AGI = ...
-LibStub('AceAddon-3.0'):NewAddon(AGI, addonName, 'AceConsole-3.0', 'AceEvent-3.0')
+LibStub("AceAddon-3.0"):NewAddon(AGI, addonName, "AceConsole-3.0", "AceEvent-3.0")
+
 local LSM = LibStub("LibSharedMedia-3.0")
+local AceDB = LibStub("AceDB-3.0")
 local DEFAULT_FONT = "Friz Quadrata TT"
 
-local slots = {
-    "HeadSlot", "NeckSlot", "ShoulderSlot", "BackSlot", "ChestSlot", "ShirtSlot", "TabardSlot",
-    "WristSlot", "HandsSlot", "WaistSlot", "LegsSlot", "FeetSlot", "Finger0Slot", "Finger1Slot",
-    "Trinket0Slot", "Trinket1Slot", "MainHandSlot", "SecondaryHandSlot"
+local RIGHT = { anchor = "TOPLEFT", rel = "TOPRIGHT", justify = "LEFT", x = 6, y = 0, isRight = true }
+local LEFT = { anchor = "TOPRIGHT", rel = "TOPLEFT", justify = "RIGHT", x = -6, y = 0, isRight = false }
+local BELOW_RIGHT = { anchor = "TOPRIGHT", rel = "BOTTOMRIGHT", justify = "RIGHT", x = -2, y = -2, isRight = false }
+local BELOW_LEFT = { anchor = "TOPLEFT", rel = "BOTTOMLEFT", justify = "LEFT", x = 2, y = -2, isRight = true }
+
+local SLOTS = {
+    { name = "HeadSlot", align = RIGHT },
+    { name = "NeckSlot", align = RIGHT },
+    { name = "ShoulderSlot", align = RIGHT },
+    { name = "BackSlot", align = RIGHT },
+    { name = "ChestSlot", align = RIGHT },
+    { name = "ShirtSlot", align = RIGHT },
+    { name = "TabardSlot", align = RIGHT },
+    { name = "WristSlot", align = RIGHT },
+    { name = "HandsSlot", align = LEFT },
+    { name = "WaistSlot", align = LEFT },
+    { name = "LegsSlot", align = LEFT },
+    { name = "FeetSlot", align = LEFT },
+    { name = "Finger0Slot", align = LEFT },
+    { name = "Finger1Slot", align = LEFT },
+    { name = "Trinket0Slot", align = LEFT },
+    { name = "Trinket1Slot", align = LEFT },
+    { name = "MainHandSlot", align = BELOW_RIGHT },
+    { name = "SecondaryHandSlot", align = BELOW_LEFT },
 }
 
 function AGI:OnInitialize()
-    self.db = LibStub('AceDB-3.0'):New('AGI_DB', {
+    self.db = AceDB:New("AGI_DB", {
         global = {
             EnableIlvl = true,
             IlvlFont = DEFAULT_FONT,
             IlvlFontSize = 10,
-            IlvlColor = {r = 1, g = 0.82, b = 0, a = 1},
+            IlvlColor = { r = 1, g = 0.82, b = 0, a = 1 },
             IlvlClassColor = false,
 
             EnableDurability = true,
@@ -25,7 +47,7 @@ function AGI:OnInitialize()
             EnableEnchants = true,
             EnchantFont = DEFAULT_FONT,
             EnchantFontSize = 10,
-            EnchantColor = {r = 0, g = 1, b = 0, a = 1},
+            EnchantColor = { r = 0, g = 1, b = 0, a = 1 },
             EnchantClassColor = false,
 
             EnableGems = true,
@@ -34,383 +56,369 @@ function AGI:OnInitialize()
             PreciseIlvl = true,
             TotalIlvlFont = DEFAULT_FONT,
             TotalIlvlFontSize = 18,
-            TotalIlvlColor = {r = 1, g = 0.82, b = 0, a = 1},
+            TotalIlvlColor = { r = 1, g = 0.82, b = 0, a = 1 },
             TotalIlvlClassColor = false,
         },
     }, true)
 
-    local options = self:GetSettings()
+    self:RegisterChatCommand("agi", "HandleSlashCommands")
 
-    -- Register the main Asa Suite category if it doesn't exist
-    if not LibStub("AceConfigRegistry-3.0"):GetOptionsTable("|cFF047857Asa|r Suite") then
-        LibStub("AceConfig-3.0"):RegisterOptionsTable("|cFF047857Asa|r Suite", {
-            name = "|cFF047857Asa|r Suite",
-            type = "group",
-            childGroups = "tab",
-            args = {
-                info = {
-                    type = "description",
-                    name = "Welcome to |cFF047857Asa|r Suite. Select a module from the tabs at the top to configure its settings.",
-                    order = 1,
-                },
-            },
-        })
-        LibStub("AceConfigDialog-3.0"):AddToBlizOptions("|cFF047857Asa|r Suite", "|cFF047857Asa|r Suite")
+    local function QueuePlayerUpdate()
+        self:QueueUpdate("player")
     end
+    self:RegisterEvent("PLAYER_ENTERING_WORLD", QueuePlayerUpdate)
+    self:RegisterEvent("PLAYER_EQUIPMENT_CHANGED", QueuePlayerUpdate)
+    self:RegisterEvent("UPDATE_INVENTORY_DURABILITY", QueuePlayerUpdate)
+    self:RegisterEvent("SOCKET_INFO_UPDATE", QueuePlayerUpdate)
 
-    LibStub("AceConfig-3.0"):RegisterOptionsTable("Gear Info", options)
-    self.optionsFrame, self.categoryID = LibStub("AceConfigDialog-3.0"):AddToBlizOptions("Gear Info", "Gear Info", "|cFF047857Asa|r Suite")
+    self:RegisterEvent("INSPECT_READY", function(_, guid)
+        if not self.queuedUnits then return end
+        for unit in pairs(self.queuedUnits) do
+            if UnitGUID(unit) == guid then
+                self:QueueUpdate(unit)
+            end
+        end
+    end)
 
-    self:RegisterChatCommand('agi', 'HandleSlashCommands')
+    local f = CreateFrame("Frame")
+    f:RegisterEvent("ADDON_LOADED")
+    f:SetScript("OnEvent", function(_, _, name)
+        if name == "Blizzard_InspectUI" then
+            if not InspectFrame then return end
+            hooksecurefunc("InspectFrame_UpdateTabs", function()
+                if InspectFrame and InspectFrame.unit and InspectFrame:IsShown() then
+                    AGI:QueueUpdate(InspectFrame.unit)
+                end
+            end)
+            f:UnregisterEvent("ADDON_LOADED")
+        end
+    end)
 
-    self:RegisterEvent("PLAYER_ENTERING_WORLD", "UpdateAll")
-    self:RegisterEvent("PLAYER_EQUIPMENT_CHANGED", "UpdateAll")
-    self:RegisterEvent("UPDATE_INVENTORY_DURABILITY", "UpdateGearInfo")
-    self:RegisterEvent("SOCKET_INFO_UPDATE", "UpdateGearInfo")
-
-    if CharacterStatsPane and CharacterStatsPane.ItemLevelFrame then
-        hooksecurefunc(CharacterStatsPane.ItemLevelFrame, "SetPoint", function()
-            self:UpdatePreciseIlvl()
-        end)
-    end
-    
     hooksecurefunc("PaperDollFrame_UpdateStats", function()
         self:UpdatePreciseIlvl()
     end)
 end
 
-function AGI:HandleSlashCommands(input)
-    if not input or input:trim() == '' then
-        if Settings and Settings.OpenToCategory then
-            Settings.OpenToCategory(self.categoryID)
-        end
+local function GetClassColor(unit)
+    local _, class = UnitClass(unit or "player")
+    return RAID_CLASS_COLORS[class]
+end
+
+function AGI:ApplyFont(fs, fontName, fontSize)
+    local font = LSM:Fetch("font", fontName or DEFAULT_FONT)
+    local _, _, flags = fs:GetFont()
+    fs:SetFont(font, fontSize, flags)
+end
+
+function AGI:ApplyColor(fs, classColor, useClassColor, custom)
+    if not fs then return end
+    if useClassColor then
+        fs:SetTextColor(classColor.r, classColor.g, classColor.b)
     else
-        LibStub('AceConfigCmd-3.0'):HandleCommand('agi', 'Gear Info', input)
+        fs:SetTextColor(custom.r, custom.g, custom.b, custom.a)
     end
 end
 
-function AGI:UpdateAll()
-    self:UpdateGearInfo()
-    self:UpdatePreciseIlvl()
+function AGI:GetSlotFrame(slotName, isInspect)
+    return _G[(isInspect and "Inspect" or "Character") .. slotName]
 end
 
-function AGI:GetSlotFrame(slotName)
-    return _G["Character" .. slotName]
+function AGI:GetFontString(parent, key)
+    if not parent[key] then
+        parent[key] = parent:CreateFontString(nil, "OVERLAY", "NumberFontNormal")
+    end
+    return parent[key]
 end
 
-function AGI:CreateText(slotFrame, name, point, relativePoint, x, y, justify, fontSize, fontName)
-    if not slotFrame then return end
-    local text = slotFrame[name]
-    if not text then
-        text = slotFrame:CreateFontString(nil, "OVERLAY", "NumberFontNormal")
-        slotFrame[name] = text
+function AGI:GetEnchantButton(parent)
+    if parent.AGI_Enchant then
+        return parent.AGI_Enchant
     end
-    text:ClearAllPoints()
-    text:SetPoint(point, slotFrame, relativePoint or point, x, y)
-    if justify then
-        text:SetJustifyH(justify)
-    end
-    
-    local font = LSM:Fetch("font", fontName or DEFAULT_FONT)
-    local _, size, flags = text:GetFont()
-    text:SetFont(font, fontSize or size, flags)
-    
-    return text
-end
-
-function AGI:CreateGemTexture(slotFrame, index, point, relativePoint, x, y, size)
-    if not slotFrame then return end
-    local name = "AsaGem" .. index
-    local btn = slotFrame[name]
-    if not btn then
-        btn = CreateFrame("Button", nil, slotFrame)
-        local tex = btn:CreateTexture(nil, "OVERLAY")
-        tex:SetAllPoints()
-        btn.tex = tex
-        slotFrame[name] = btn
-    end
-    btn:SetSize(size or 14, size or 14)
-    btn:ClearAllPoints()
-    btn:SetPoint(point, slotFrame, relativePoint or point, x, y)
+    local btn = CreateFrame("Button", nil, parent)
+    btn:SetHeight(14)
+    btn.text = btn:CreateFontString(nil, "OVERLAY", "NumberFontNormal")
+    btn.text:SetPoint("LEFT")
+    btn:SetScript("OnEnter", function(self)
+        if self.fullText then
+            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+            GameTooltip:SetText(self.fullText, 1, 1, 1, 1)
+            GameTooltip:Show()
+        end
+    end)
+    btn:SetScript("OnLeave", GameTooltip_Hide)
+    parent.AGI_Enchant = btn
     return btn
 end
 
-function AGI:CreateEnchantText(slotFrame, point, relativePoint, x, y, fontSize, fontName)
-    if not slotFrame then return end
-    local name = "AsaEnchantText"
-    local btn = slotFrame[name]
-    if not btn then
-        btn = CreateFrame("Button", nil, slotFrame)
-        btn:SetSize(100, 12)
-        
-        local text = btn:CreateFontString(nil, "OVERLAY", "NumberFontNormal")
-        btn.text = text
-
-        btn:SetScript("OnEnter", function(self)
-            if self.fullText then
-                GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-                GameTooltip:SetText(self.fullText, 1, 1, 1, true)
-                GameTooltip:Show()
-            end
-        end)
-        btn:SetScript("OnLeave", function(self)
-            GameTooltip:Hide()
-        end)
-        
-        slotFrame[name] = btn
+function AGI:GetGemButton(parent, index)
+    local key = "AGI_Gem" .. index
+    if parent[key] then
+        return parent[key]
     end
-    btn:ClearAllPoints()
-    btn:SetPoint(point, slotFrame, relativePoint or point, x, y)
-
-    btn.text:ClearAllPoints()
-    btn.text:SetPoint(point == "TOPLEFT" and "LEFT" or "RIGHT", btn)
-
-    local font = LSM:Fetch("font", fontName or DEFAULT_FONT)
-    local _, size, flags = btn.text:GetFont()
-    btn.text:SetFont(font, fontSize or size, flags)
-
+    local btn = CreateFrame("Frame", nil, parent)
+    btn.tex = btn:CreateTexture(nil, "OVERLAY")
+    btn.tex:SetAllPoints()
+    parent[key] = btn
     return btn
+end
+
+function AGI:QueueUpdate(unit)
+    unit = unit or "player"
+    if not self.queuedUnits then
+        self.queuedUnits = {}
+    end
+    if self.queuedUnits[unit] then return end
+    self.queuedUnits[unit] = true
+
+    C_Timer.After(0.1, function()
+        self.queuedUnits[unit] = nil
+        self:UpdateGearInfo(unit)
+        if unit == "player" then
+            self:UpdatePreciseIlvl()
+        end
+    end)
 end
 
 local function TruncateText(text, maxLength)
-    if not text then return "" end
-    if #text > maxLength then
-        return text:sub(1, maxLength - 2) .. ".."
+    if not text then
+        return ""
+    end
+    if strlenutf8(text) > maxLength then
+        return string.sub(text, 1, maxLength) .. "..."
     end
     return text
 end
 
-function AGI:UpdateGearInfo()
-    if not CharacterFrame then return end
+function AGI:UpdateItemLevel(slotFrame, itemLink, slotId, classColor, unit)
+    local fs = self:GetFontString(slotFrame, "AGI_Ilvl")
+    fs:SetPoint("TOPLEFT", 2, -2)
+    fs:SetText("")
+    if not self.db.global.EnableIlvl then return end
+    self:ApplyFont(fs, self.db.global.IlvlFont, self.db.global.IlvlFontSize)
+    self:ApplyColor(fs, classColor, self.db.global.IlvlClassColor, self.db.global.IlvlColor)
 
-    local _, classFile = UnitClass("player")
-    local classColor = C_ColorPicker and C_ColorPicker.GetClassColor(classFile) or RAID_CLASS_COLORS[classFile]
+    local item = Item:CreateFromItemLink(itemLink)
+    if item:IsItemEmpty() then return end
 
-    for _, slotName in ipairs(slots) do
-        local slotId = GetInventorySlotInfo(slotName)
-        local itemLink = GetInventoryItemLink("player", slotId)
-        local slotFrame = self:GetSlotFrame(slotName)
+    item:ContinueOnItemLoad(function()
+        if not slotFrame:IsVisible() then return end
+        if GetInventoryItemLink(unit or "player", slotId) ~= itemLink then return end
 
-        if slotFrame then
-            local left = slotFrame:GetLeft()
-            local charLeft = CharacterFrame:GetLeft()
-            local isLeft = true
-            if left and charLeft then
-                isLeft = left < (charLeft + CharacterFrame:GetWidth() / 2)
+        local ilvl
+        local lines = C_TooltipInfo.GetInventoryItem(unit or "player", slotId)
+        if lines then
+            for _, line in ipairs(lines.lines) do
+                local found = line.leftText and line.leftText:match("Item Level:?%s*(%d+)")
+                if found then
+                    ilvl = tonumber(found)
+                    break
+                end
             end
-            
-            if slotName == "MainHandSlot" then
-                isLeft = false
-            elseif slotName == "SecondaryHandSlot" then
-                isLeft = true
-            end
+        end
 
-            -- ILVL
-            local ilvlText = self:CreateText(slotFrame, "AsaIlvl", "TOPLEFT", "TOPLEFT", 2, -2, nil, self.db.global.IlvlFontSize, self.db.global.IlvlFont)
-            ilvlText:SetText("")
-            if self.db.global.IlvlClassColor then
-                ilvlText:SetTextColor(classColor.r, classColor.g, classColor.b, 1)
+        if not ilvl then
+            if C_Item.GetAppliedItemLevel then
+                ilvl = C_Item.GetAppliedItemLevel(itemLink)
+            end
+            if not ilvl then
+                ilvl = C_Item.GetDetailedItemLevelInfo(itemLink)
+            end
+        end
+
+        if ilvl then
+            fs:SetText(ilvl)
+        end
+    end)
+end
+
+function AGI:UpdateDurability(slotFrame, slotId)
+    local fs = self:GetFontString(slotFrame, "AGI_Dur")
+    fs:SetPoint("BOTTOMRIGHT", -2, 2)
+    fs:SetText("")
+    if not self.db.global.EnableDurability then return end
+    self:ApplyFont(fs, self.db.global.DurFont, self.db.global.DurFontSize)
+
+    local cur, max = GetInventoryItemDurability(slotId)
+    if not cur or not max or max == 0 then return end
+    local pct = cur / max
+    fs:SetText(string.format("%d%%", pct * 100))
+
+    if pct < 0.25 then
+        fs:SetTextColor(1, 0, 0)
+    elseif pct < 0.5 then
+        fs:SetTextColor(1, 0.5, 0)
+    else
+        fs:SetTextColor(0, 1, 0)
+    end
+end
+
+-- Only show enchants and gems for player; skip for inspected units
+function AGI:UpdateEnchants(slotFrame, itemLink, slotId, align, classColor, unit)
+    if unit ~= "player" then return end
+    local btn = self:GetEnchantButton(slotFrame)
+    btn:Hide()
+    if not self.db.global.EnableEnchants then return end
+
+    btn:SetPoint(align.anchor, slotFrame, align.rel, align.x, align.y)
+    btn.text:ClearAllPoints()
+    btn.text:SetPoint(align.justify == "LEFT" and "LEFT" or "RIGHT")
+    btn.text:SetJustifyH(align.justify)
+    self:ApplyFont(btn.text, self.db.global.EnchantFont, self.db.global.EnchantFontSize)
+    self:ApplyColor(btn.text, classColor, self.db.global.EnchantClassColor, self.db.global.EnchantColor)
+
+    local item = Item:CreateFromItemLink(itemLink)
+    if item:IsItemEmpty() then return end
+
+    item:ContinueOnItemLoad(function()
+        if not slotFrame:IsVisible() then return end
+        if GetInventoryItemLink("player", slotId) ~= itemLink then return end
+
+        local lines = C_TooltipInfo.GetInventoryItem("player", slotId)
+        if lines then
+            for _, line in ipairs(lines.lines) do
+                local text = line.leftText
+                if text and (text:find("^Enchanted:") or text:find("^Enchant:")) then
+                    text = text:gsub("^Enchanted:%s*", ""):gsub("^Enchant:%s*", "")
+                    text = text:gsub("|A:Prof[^|]+|a", ""):gsub("%s+$", "")
+                    btn.fullText = text
+                    btn.text:SetText(TruncateText(text, 18))
+                    btn:SetWidth(btn.text:GetStringWidth() + 5)
+                    btn:Show()
+                    return
+                end
+            end
+        end
+    end)
+end
+
+function AGI:UpdateGems(slotFrame, itemLink, align, unit, slotId)
+    for i = 1, 5 do
+        if slotFrame["AGI_Gem" .. i] then
+            slotFrame["AGI_Gem" .. i]:Hide()
+        end
+    end
+    if unit ~= "player" then return end
+    if not self.db.global.EnableGems then return end
+
+    local item = Item:CreateFromItemLink(itemLink)
+    if item:IsItemEmpty() then return end
+
+    item:ContinueOnItemLoad(function()
+        if not slotFrame:IsVisible() then return end
+        if GetInventoryItemLink("player", slotId) ~= itemLink then return end
+
+        local size = self.db.global.GemSize
+        local right = align.isRight
+        local anchor = right and "BOTTOMLEFT" or "BOTTOMRIGHT"
+        local rel = right and "BOTTOMRIGHT" or "BOTTOMLEFT"
+
+        for i = 1, 5 do
+            local _, gemLink = C_Item.GetItemGem(itemLink, i)
+            if gemLink then
+                local btn = self:GetGemButton(slotFrame, i)
+                btn:SetSize(size, size)
+                btn:SetPoint(anchor, slotFrame, rel, (right and 6 or -6) + (i - 1) * (right and size or -size), 0)
+                btn.tex:SetTexture(C_Item.GetItemIconByID(gemLink))
+                btn:Show()
+            end
+        end
+    end)
+end
+
+function AGI:UpdateGearInfo(unit)
+    unit = unit or "player"
+    local isInspect = (unit ~= "player")
+    local framePrefix = isInspect and "Inspect" or "Character"
+
+    if isInspect then
+        if not InspectFrame or not InspectFrame:IsShown() then return end
+        if InspectFrame.unit and UnitGUID(InspectFrame.unit) == UnitGUID(unit) then
+            unit = InspectFrame.unit
+        end
+    else
+        if not CharacterFrame or not CharacterFrame:IsShown() then return end
+    end
+
+    local classColor = GetClassColor(unit)
+
+    for _, info in ipairs(SLOTS) do
+        local slotId = GetInventorySlotInfo(info.name)
+        local link = GetInventoryItemLink(unit, slotId)
+        local frame = _G[framePrefix .. info.name]
+
+        if frame then
+            if link then
+                self:UpdateItemLevel(frame, link, slotId, classColor, unit)
+                if not isInspect then
+                    self:UpdateDurability(frame, slotId)
+                    self:UpdateEnchants(frame, link, slotId, info.align, classColor, unit)
+                    self:UpdateGems(frame, link, info.align, unit, slotId)
+                end
             else
-                local c = self.db.global.IlvlColor
-                ilvlText:SetTextColor(c.r, c.g, c.b, c.a)
+                self:ClearSlotInfo(frame)
             end
+        end
+    end
+end
 
-            -- DURABILITY
-            local durText = self:CreateText(slotFrame, "AsaDur", "BOTTOMRIGHT", "BOTTOMRIGHT", -2, 2, nil, self.db.global.DurFontSize, self.db.global.DurFont)
-            durText:SetText("")
-
-            -- ENCHANTS
-            local enchantTextBtn = self:CreateEnchantText(slotFrame, "TOP", "TOP", 0, 0, self.db.global.EnchantFontSize, self.db.global.EnchantFont)
-            enchantTextBtn:ClearAllPoints()
-            
-            if slotName == "MainHandSlot" or slotName == "SecondaryHandSlot" then
-                local x = (slotName == "MainHandSlot") and -2 or 2
-                local y = -2
-                local anchor = (slotName == "MainHandSlot") and "TOPRIGHT" or "TOPLEFT"
-                local relAnchor = (slotName == "MainHandSlot") and "BOTTOMRIGHT" or "BOTTOMLEFT"
-                local justify = (slotName == "MainHandSlot") and "RIGHT" or "LEFT"
-
-                enchantTextBtn:SetPoint(anchor, slotFrame, relAnchor, x, y)
-                enchantTextBtn.text:ClearAllPoints()
-                enchantTextBtn.text:SetPoint(justify, enchantTextBtn)
-                enchantTextBtn.text:SetJustifyH(justify)
-            else
-                local x = isLeft and 6 or -6
-                local y = 0
-                local anchor = isLeft and "TOPLEFT" or "TOPRIGHT"
-                local relAnchor = isLeft and "TOPRIGHT" or "TOPLEFT"
-                local justify = isLeft and "LEFT" or "RIGHT"
-
-                enchantTextBtn:SetPoint(anchor, slotFrame, relAnchor, x, y)
-                enchantTextBtn.text:ClearAllPoints()
-                enchantTextBtn.text:SetPoint(justify, enchantTextBtn)
-                enchantTextBtn.text:SetJustifyH(justify)
-            end
-            enchantTextBtn:Hide()
-            if self.db.global.EnchantClassColor then
-                enchantTextBtn.text:SetTextColor(classColor.r, classColor.g, classColor.b, 1)
-            else
-                local c = self.db.global.EnchantColor
-                enchantTextBtn.text:SetTextColor(c.r, c.g, c.b, c.a)
-            end
-
-            for i = 1, 5 do
-                local gemBtn = slotFrame["AsaGem" .. i]
-                if gemBtn then gemBtn:Hide() end
-            end
-
-            if itemLink then
-                -- ILVL
-                if self.db.global.EnableIlvl then
-                    local ilvl = C_Item.GetDetailedItemLevelInfo(itemLink)
-                    if C_Item.GetAppliedItemLevel then
-                        local appliedIlvl = C_Item.GetAppliedItemLevel(itemLink)
-                        if appliedIlvl and appliedIlvl > 0 then
-                            ilvl = appliedIlvl
-                        end
-                    end
-
-                    local tooltipData = C_TooltipInfo.GetInventoryItem("player", slotId)
-                    if tooltipData then
-                        for _, line in ipairs(tooltipData.lines) do
-                            if line.leftText then
-                                local foundIlvl = line.leftText:match("Item Level (%d+)")
-                                if foundIlvl then
-                                    ilvl = tonumber(foundIlvl)
-                                    break
-                                end
-                            end
-                        end
-                    end
-
-                    if ilvl then
-                        ilvlText:SetText(ilvl)
-                    end
-                end
-
-                -- DURABILITY
-                if self.db.global.EnableDurability then
-                    local current, maximum = GetInventoryItemDurability(slotId)
-                    if current and maximum and maximum > 0 then
-                        local perc = (current / maximum) * 100
-                        durText:SetText(string.format("%.0f%%", perc))
-                        
-                        if perc < 25 then
-                            durText:SetTextColor(1, 0, 0)
-                        elseif perc < 50 then
-                            durText:SetTextColor(1, 0.5, 0)
-                        else
-                            durText:SetTextColor(0, 1, 0)
-                        end
-                    end
-                end
-
-                -- ENCHANTS
-                if self.db.global.EnableEnchants then
-                    local enchantId = itemLink:match("item:%d+:(%d*):")
-                    if enchantId and enchantId ~= "" and enchantId ~= "0" then
-                        local data = C_TooltipInfo.GetInventoryItem("player", slotId)
-                        if data then
-                            for _, line in ipairs(data.lines) do
-                                if line.leftText then
-                                    if line.leftColor and line.leftColor.r < 0.2 and line.leftColor.g > 0.9 and line.leftColor.b < 0.2 then
-                                         local text = line.leftText:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", ""):gsub("|T.-|t", ""):gsub("|A.-|a", "")
-                                         if text:find("^Enchanted:") or text:find("^Enchant:") or 
-                                            (not text:find("Item Level") and not text:find("Upgrade Level") and 
-                                             not text:find("%+") and not text:find("^Equip:") and not text:find("^Use:")) then
-                                            
-                                            text = text:trim():gsub("^Enchanted: ", ""):gsub("^Enchant: ", "")
-                                            text = text:gsub("|T.-|t", ""):gsub("|A.-|a", ""):trim()
-                                            
-                                            enchantTextBtn.fullText = text
-                                            enchantTextBtn.text:SetText(TruncateText(text, 18))
-                                            enchantTextBtn:Show()
-                                            break
-                                         end
-                                    end
-                                end
-                            end
-                        end
-                        if not enchantTextBtn:IsShown() then
-                            enchantTextBtn.fullText = "Enchanted"
-                            enchantTextBtn.text:SetText("Enchanted")
-                            enchantTextBtn:Show()
-                        end
-                    end
-                end
-
-                -- GEMS
-                if self.db.global.EnableGems then
-                    local stats = C_Item.GetItemStats(itemLink)
-                    local numSockets = 0
-                    if stats then
-                        for stat, _ in pairs(stats) do
-                            if stat:find("EMPTY_SOCKET") then
-                                numSockets = numSockets + stats[stat]
-                            end
-                        end
-                    end
-
-                    local gemCount = 0
-                    local gemSize = self.db.global.GemSize
-
-                    for i = 1, 5 do
-                        local _, gemLink = C_Item.GetItemGem(itemLink, i)
-                        if gemLink then
-                            gemCount = gemCount + 1
-                            local gemIcon = C_Item.GetItemIconByID(gemLink)
-                            if gemIcon then
-                                local xOffset = isLeft and (6 + (gemCount-1) * gemSize) or (-6 - (gemCount-1) * gemSize)
-                                local gemBtn = self:CreateGemTexture(slotFrame, gemCount, isLeft and "BOTTOMLEFT" or "BOTTOMRIGHT", isLeft and "BOTTOMRIGHT" or "BOTTOMLEFT", xOffset, 0, gemSize)
-                                gemBtn.tex:SetTexture(gemIcon)
-                                gemBtn.tex:SetDesaturated(false)
-                                gemBtn:Show()
-                            end
-                        end
-                    end
-
-                    if numSockets > gemCount then
-                        for i = gemCount + 1, numSockets do
-                            local xOffset = isLeft and (6 + (i-1) * gemSize) or (-6 - (i-1) * gemSize)
-                            local gemBtn = self:CreateGemTexture(slotFrame, i, isLeft and "BOTTOMLEFT" or "BOTTOMRIGHT", isLeft and "BOTTOMRIGHT" or "BOTTOMLEFT", xOffset, 0, gemSize)
-                            gemBtn.tex:SetTexture("Interface\\ItemSocketingFrame\\UI-EmptySocket-Prismatic")
-                            gemBtn.tex:SetDesaturated(false)
-                            gemBtn:Show()
-                        end
-                    end
-                end
-            end
+function AGI:ClearSlotInfo(frame)
+    if frame.AGI_Ilvl then
+        frame.AGI_Ilvl:SetText("")
+    end
+    if frame.AGI_Dur then
+        frame.AGI_Dur:SetText("")
+    end
+    if frame.AGI_Enchant then
+        frame.AGI_Enchant:Hide()
+    end
+    for i = 1, 5 do
+        if frame["AGI_Gem" .. i] then
+            frame["AGI_Gem" .. i]:Hide()
         end
     end
 end
 
 function AGI:UpdatePreciseIlvl()
-    if not CharacterFrame or not CharacterFrame:IsShown() then return end
-    
-    if self.db.global.PreciseIlvl then
-        local _, avgEquipped, _ = GetAverageItemLevel()
-        if CharacterStatsPane and CharacterStatsPane.ItemLevelFrame then
-            local frame = CharacterStatsPane.ItemLevelFrame
-            if frame.Value then
-                frame.Value:SetText(string.format("%.2f", avgEquipped))
-                
-                local font = LSM:Fetch("font", self.db.global.TotalIlvlFont or DEFAULT_FONT)
-                local _, size, flags = frame.Value:GetFont()
-                frame.Value:SetFont(font, self.db.global.TotalIlvlFontSize or size, flags)
+    if not self.db.global.PreciseIlvl then return end
+    if not CharacterStatsPane or not CharacterStatsPane.ItemLevelFrame or not CharacterFrame:IsShown() then return end
 
-                if self.db.global.TotalIlvlClassColor then
-                    local _, classFile = UnitClass("player")
-                    local classColor = C_ColorPicker and C_ColorPicker.GetClassColor(classFile) or RAID_CLASS_COLORS[classFile]
-                    frame.Value:SetTextColor(classColor.r, classColor.g, classColor.b, 1)
-                else
-                    local c = self.db.global.TotalIlvlColor
-                    frame.Value:SetTextColor(c.r, c.g, c.b, c.a)
-                end
-            end
+    local _, avg = GetAverageItemLevel()
+    local frame = CharacterStatsPane.ItemLevelFrame
+    if not frame.Value then return end
+
+    frame.Value:SetText(string.format("%.2f", avg))
+    self:ApplyFont(frame.Value, self.db.global.TotalIlvlFont, self.db.global.TotalIlvlFontSize)
+    self:ApplyColor(frame.Value, GetClassColor("player"), self.db.global.TotalIlvlClassColor, self.db.global.TotalIlvlColor)
+end
+
+CharacterFrame:HookScript("OnShow", function()
+    AGI:QueueUpdate("player")
+end)
+CharacterFrame:HookScript("OnHide", function()
+    for _, info in ipairs(SLOTS) do
+        local frame = _G["Character" .. info.name]
+        if frame then
+            AGI:ClearSlotInfo(frame)
+        end
+    end
+end)
+
+local function OnInspectShow()
+    if InspectFrame.unit then
+        AGI:QueueUpdate(InspectFrame.unit)
+    end
+end
+
+local function OnInspectHide()
+    for _, info in ipairs(SLOTS) do
+        local frame = _G["Inspect" .. info.name]
+        if frame then
+            AGI:ClearSlotInfo(frame)
         end
     end
 end
 
-CharacterFrame:HookScript("OnShow", function()
-    AGI:UpdateAll()
-end)
+if InspectFrame then
+    InspectFrame:HookScript("OnShow", OnInspectShow)
+    InspectFrame:HookScript("OnHide", OnInspectHide)
+end
