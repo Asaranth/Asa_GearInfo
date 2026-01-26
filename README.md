@@ -1,4 +1,4 @@
-# Asa: Gear Info
+# Asa Suite: Gear Info
 
 ![CurseForge Downloads](https://img.shields.io/curseforge/dt/1444684) ![CurseForge Game Versions](https://img.shields.io/curseforge/game-versions/1444684)
 
