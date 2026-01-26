@@ -1,6 +1,8 @@
-# Asa: Gear Info
+# Asa Suite: Gear Info
 
-**Asa: Gear Info** is a lightweight World of Warcraft addon that enhances the character pane by providing essential information about your equipped gear at a glance.
+![CurseForge Downloads](https://img.shields.io/curseforge/dt/1444684) ![CurseForge Game Versions](https://img.shields.io/curseforge/game-versions/1444684)
+
+**Asa Suite: Gear Info** is a lightweight World of Warcraft addon that enhances the character pane by providing essential information about your equipped gear at a glance.
 
 ## Features
 

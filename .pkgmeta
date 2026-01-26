@@ -1,4 +1,4 @@
-package-as: Asa_DataTexts
+package-as: Asa_GearInfo
 
 ignore:
     - README.md
