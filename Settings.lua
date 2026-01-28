@@ -16,7 +16,7 @@ function AGI:GetSettings()
                         type = 'toggle',
                         name = 'Enable',
                         desc = 'Display item level on each gear slot.',
-                        set = function(_, val) AGI.db.global.EnableIlvl = val; AGI:UpdateGearInfo() end,
+                        set = function(_, val) AGI.db.global.EnableIlvl = val; AGI:RefreshAddon() end,
                         get = function() return AGI.db.global.EnableIlvl end,
                         order = 1,
                     },
@@ -25,7 +25,7 @@ function AGI:GetSettings()
                         name = 'Font',
                         dialogControl = 'LSM30_Font',
                         values = LSM:HashTable("font"),
-                        set = function(_, val) AGI.db.global.IlvlFont = val; AGI:UpdateGearInfo() end,
+                        set = function(_, val) AGI.db.global.IlvlFont = val; AGI:RefreshAddon() end,
                         get = function() return AGI.db.global.IlvlFont end,
                         order = 2,
                     },
@@ -33,14 +33,14 @@ function AGI:GetSettings()
                         type = 'range',
                         name = 'Font Size',
                         min = 6, max = 24, step = 1,
-                        set = function(_, val) AGI.db.global.IlvlFontSize = val; AGI:UpdateGearInfo() end,
+                        set = function(_, val) AGI.db.global.IlvlFontSize = val; AGI:RefreshAddon() end,
                         get = function() return AGI.db.global.IlvlFontSize end,
                         order = 3,
                     },
                     IlvlClassColor = {
                         type = 'toggle',
                         name = 'Use Class Color',
-                        set = function(_, val) AGI.db.global.IlvlClassColor = val; AGI:UpdateGearInfo() end,
+                        set = function(_, val) AGI.db.global.IlvlClassColor = val; AGI:RefreshAddon() end,
                         get = function() return AGI.db.global.IlvlClassColor end,
                         order = 4,
                     },
@@ -50,7 +50,7 @@ function AGI:GetSettings()
                         hasAlpha = true,
                         set = function(_, r, g, b, a) 
                             AGI.db.global.IlvlColor = { r = r, g = g, b = b, a = a}
-                            AGI:UpdateGearInfo()
+                            AGI:RefreshAddon()
                         end,
                         get = function() 
                             local c = AGI.db.global.IlvlColor
@@ -70,7 +70,7 @@ function AGI:GetSettings()
                         type = 'toggle',
                         name = 'Enable',
                         desc = 'Display durability on each gear slot.',
-                        set = function(_, val) AGI.db.global.EnableDurability = val; AGI:UpdateGearInfo() end,
+                        set = function(_, val) AGI.db.global.EnableDurability = val; AGI:RefreshAddon() end,
                         get = function() return AGI.db.global.EnableDurability end,
                         order = 1,
                     },
@@ -79,7 +79,7 @@ function AGI:GetSettings()
                         name = 'Font',
                         dialogControl = 'LSM30_Font',
                         values = LSM:HashTable("font"),
-                        set = function(_, val) AGI.db.global.DurFont = val; AGI:UpdateGearInfo() end,
+                        set = function(_, val) AGI.db.global.DurFont = val; AGI:RefreshAddon() end,
                         get = function() return AGI.db.global.DurFont end,
                         order = 2,
                     },
@@ -87,7 +87,7 @@ function AGI:GetSettings()
                         type = 'range',
                         name = 'Font Size',
                         min = 6, max = 24, step = 1,
-                        set = function(_, val) AGI.db.global.DurFontSize = val; AGI:UpdateGearInfo() end,
+                        set = function(_, val) AGI.db.global.DurFontSize = val; AGI:RefreshAddon() end,
                         get = function() return AGI.db.global.DurFontSize end,
                         order = 3,
                     },
@@ -102,7 +102,7 @@ function AGI:GetSettings()
                         type = 'toggle',
                         name = 'Enable',
                         desc = 'Display enchantment text on each gear slot.',
-                        set = function(_, val) AGI.db.global.EnableEnchants = val; AGI:UpdateGearInfo() end,
+                        set = function(_, val) AGI.db.global.EnableEnchants = val; AGI:RefreshAddon() end,
                         get = function() return AGI.db.global.EnableEnchants end,
                         order = 1,
                     },
@@ -111,7 +111,7 @@ function AGI:GetSettings()
                         name = 'Font',
                         dialogControl = 'LSM30_Font',
                         values = LSM:HashTable("font"),
-                        set = function(_, val) AGI.db.global.EnchantFont = val; AGI:UpdateGearInfo() end,
+                        set = function(_, val) AGI.db.global.EnchantFont = val; AGI:RefreshAddon() end,
                         get = function() return AGI.db.global.EnchantFont end,
                         order = 2,
                     },
@@ -119,14 +119,14 @@ function AGI:GetSettings()
                         type = 'range',
                         name = 'Font Size',
                         min = 6, max = 24, step = 1,
-                        set = function(_, val) AGI.db.global.EnchantFontSize = val; AGI:UpdateGearInfo() end,
+                        set = function(_, val) AGI.db.global.EnchantFontSize = val; AGI:RefreshAddon() end,
                         get = function() return AGI.db.global.EnchantFontSize end,
                         order = 3,
                     },
                     EnchantClassColor = {
                         type = 'toggle',
                         name = 'Use Class Color',
-                        set = function(_, val) AGI.db.global.EnchantClassColor = val; AGI:UpdateGearInfo() end,
+                        set = function(_, val) AGI.db.global.EnchantClassColor = val; AGI:RefreshAddon() end,
                         get = function() return AGI.db.global.EnchantClassColor end,
                         order = 4,
                     },
@@ -136,7 +136,7 @@ function AGI:GetSettings()
                         hasAlpha = true,
                         set = function(_, r, g, b, a) 
                             AGI.db.global.EnchantColor = { r = r, g = g, b = b, a = a}
-                            AGI:UpdateGearInfo()
+                            AGI:RefreshAddon()
                         end,
                         get = function() 
                             local c = AGI.db.global.EnchantColor
@@ -156,7 +156,7 @@ function AGI:GetSettings()
                         type = 'toggle',
                         name = 'Enable',
                         desc = 'Display gem information on each gear slot.',
-                        set = function(_, val) AGI.db.global.EnableGems = val; AGI:UpdateGearInfo() end,
+                        set = function(_, val) AGI.db.global.EnableGems = val; AGI:RefreshAddon() end,
                         get = function() return AGI.db.global.EnableGems end,
                         order = 1,
                     },
@@ -164,7 +164,7 @@ function AGI:GetSettings()
                         type = 'range',
                         name = 'Icon Size',
                         min = 8, max = 32, step = 1,
-                        set = function(_, val) AGI.db.global.GemSize = val; AGI:UpdateGearInfo() end,
+                        set = function(_, val) AGI.db.global.GemSize = val; AGI:RefreshAddon() end,
                         get = function() return AGI.db.global.GemSize end,
                         order = 2,
                     },

@@ -62,6 +62,28 @@ function AGI:OnInitialize()
     }, true)
 
     self:RegisterChatCommand("agi", "HandleSlashCommands")
+    self:RegisterChatCommand("gearinfo", "HandleSlashCommands")
+
+    local ASA_SUITE = "|cFF047857Asa|r Suite"
+
+    -- Register the main Asa Suite category if it doesn't exist
+    if not LibStub("AceConfigRegistry-3.0"):GetOptionsTable(ASA_SUITE) then
+        LibStub("AceConfig-3.0"):RegisterOptionsTable(ASA_SUITE, {
+            name = ASA_SUITE,
+            type = "group",
+            args = {
+                info = {
+                    type = "description",
+                    name = "Welcome to " .. ASA_SUITE .. ". Select a module from the menu on the left to configure its settings.",
+                    order = 1,
+                },
+            },
+        })
+        LibStub("AceConfigDialog-3.0"):AddToBlizOptions(ASA_SUITE, ASA_SUITE)
+    end
+
+    LibStub("AceConfig-3.0"):RegisterOptionsTable(addonName, AGI:GetSettings())
+    self.optionsFrame, self.categoryID = LibStub("AceConfigDialog-3.0"):AddToBlizOptions(addonName, "Gear Info", ASA_SUITE)
 
     local function QueuePlayerUpdate()
         self:QueueUpdate("player")
@@ -97,6 +119,30 @@ function AGI:OnInitialize()
     hooksecurefunc("PaperDollFrame_UpdateStats", function()
         self:UpdatePreciseIlvl()
     end)
+end
+
+function AGI:RefreshAddon(unit)
+    if not unit or unit == "player" then
+        self:QueueUpdate("player")
+    end
+end
+
+function AGI:HandleSlashCommands(input)
+    if not input or input:trim() == "" then
+        if Settings and Settings.OpenToCategory then
+            if self.categoryID then
+                Settings.OpenToCategory(self.categoryID)
+            else
+                Settings.OpenToCategory("|cFF047857Asa|r Suite")
+            end
+        elseif InterfaceOptionsFrame_OpenToCategory then
+            InterfaceOptionsFrame_OpenToCategory("|cFF047857Asa|r Suite")
+        else
+            LibStub("AceConfigDialog-3.0"):Open(addonName)
+        end
+    else
+        LibStub("AceConfigCmd-3.0").HandleCommand(self, "agi", addonName, input)
+    end
 end
 
 local function GetClassColor(unit)
