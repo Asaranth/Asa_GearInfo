@@ -358,13 +358,23 @@ function AGI:UpdateGems(slotFrame, itemLink, align, unit, slotId)
         local anchor = right and "BOTTOMLEFT" or "BOTTOMRIGHT"
         local rel = right and "BOTTOMRIGHT" or "BOTTOMLEFT"
 
+        local numSockets = C_Item.GetItemNumSockets(itemLink)
         for i = 1, 5 do
-            local _, gemLink = C_Item.GetItemGem(itemLink, i)
-            if gemLink then
+            if i <= numSockets then
+                local gemLink = select(2, C_Item.GetItemGem(itemLink, i))
                 local btn = self:GetGemButton(slotFrame, i)
                 btn:SetSize(size, size)
                 btn:SetPoint(anchor, slotFrame, rel, (right and 6 or -6) + (i - 1) * (right and size or -size), 0)
-                btn.tex:SetTexture(C_Item.GetItemIconByID(gemLink))
+                if gemLink and gemLink ~= "" then
+                    local icon = C_Item.GetItemIconByID(gemLink)
+                    if icon then
+                        btn.tex:SetTexture(icon)
+                    else
+                        btn.tex:SetTexture("Interface\\ItemSocketingFrame\\UI-EmptySocket-Prismatic")
+                    end
+                else
+                    btn.tex:SetTexture("Interface\\ItemSocketingFrame\\UI-EmptySocket-Prismatic")
+                end
                 btn:Show()
             end
         end
