@@ -9,5 +9,12 @@
 ## X-Curse-Project-ID: 1444684
 
 embeds.xml
-Core.lua
+Constants.lua
+Utils.lua
+UI.lua
+ItemLevel.lua
+Durability.lua
+Enchants.lua
+Gems.lua
 Settings.lua
+Core.lua
