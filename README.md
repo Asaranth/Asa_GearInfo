@@ -3,8 +3,6 @@
 [![CurseForge Downloads](https://img.shields.io/curseforge/dt/1444684?style=for-the-badge)](https://www.curseforge.com/wow/addons/asa-gearinfo)
 [![Supported WoW Versions](https://img.shields.io/curseforge/game-versions/1444684?style=for-the-badge)](https://www.curseforge.com/wow/addons/asa-gearinfo)
 [![Latest Version](https://img.shields.io/curseforge/v/1444684?style=for-the-badge)](https://www.curseforge.com/wow/addons/asa-gearinfo)
-![License](https://img.shields.io/github/license/Asaranth/Asa_GearInfo?style=for-the-badge)
-![Last Commit](https://img.shields.io/github/last-commit/Asaranth/Asa_GearInfo?style=for-the-badge)
 
 **Asa Suite: Gear Info** is a lightweight World of Warcraft addon that enhances the character pane by providing essential information about your equipped gear at a glance.
 
