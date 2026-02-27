@@ -10,9 +10,9 @@ AGI.BELOW_RIGHT = { anchor = "TOPLEFT", rel = "BOTTOMLEFT", justify = "LEFT", en
 AGI.BELOW_LEFT = { anchor = "TOPRIGHT", rel = "BOTTOMRIGHT", justify = "RIGHT", enchantX = 0, enchantY = -2, gemX = -2, gemY = -14, isRight = false }
 
 AGI.SLOTS = {
-    { id = 1, name = "HeadSlot", align = AGI.RIGHT, gems = 1, enchantable = false },
+    { id = 1, name = "HeadSlot", align = AGI.RIGHT, gems = 1, enchantable = true },
     { id = 2, name = "NeckSlot", align = AGI.RIGHT, gems = 2, enchantable = false },
-    { id = 3, name = "ShoulderSlot", align = AGI.RIGHT, gems = 0, enchantable = false },
+    { id = 3, name = "ShoulderSlot", align = AGI.RIGHT, gems = 0, enchantable = true },
     { id = 15, name = "BackSlot", align = AGI.RIGHT, gems = 0, enchantable = true },
     { id = 5, name = "ChestSlot", align = AGI.RIGHT, gems = 0, enchantable = true },
     { id = 4, name = "ShirtSlot", align = AGI.RIGHT, gems = 0, enchantable = false },
