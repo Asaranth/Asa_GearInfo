@@ -57,19 +57,24 @@ function AGI:UpdateGems(slotFrame, itemLink, info, unit, slotId, attempts)
         end
 
         local numSockets = C_Item.GetItemNumSockets(itemLink)
-        local gemsLoaded = true
+        local allGemsHandled = true
         for i = 1, numSockets do
-            local gemName = C_Item.GetItemGem(itemLink, i)
-            if not gemName then
-                gemsLoaded = false
-                break
+            local _, gemLink = C_Item.GetItemGem(itemLink, i)
+            if gemLink then
+                local gemItem = Item:CreateFromItemLink(gemLink)
+                if not gemItem:IsItemDataCached() then
+                    allGemsHandled = false
+                    gemItem:ContinueOnItemLoad(function()
+                        if not slotFrame:IsVisible() or GetInventoryItemLink(unit, slotId) ~= itemLink then
+                            return
+                        end
+                        self:UpdateGems(slotFrame, itemLink, info, unit, slotId, attempts + 1)
+                    end)
+                end
             end
         end
 
-        if not gemsLoaded then
-            C_Timer.After(0.1, function()
-                self:UpdateGems(slotFrame, itemLink, info, unit, slotId, attempts + 1)
-            end)
+        if not allGemsHandled then
             return
         end
 
@@ -97,17 +102,7 @@ function AGI:UpdateGems(slotFrame, itemLink, info, unit, slotId, attempts)
             if i <= numSockets then
                 local _, gemLink = C_Item.GetItemGem(itemLink, i)
                 if gemLink and gemLink ~= "" then
-                    local gemItem = Item:CreateFromItemLink(gemLink)
-                    if gemItem:IsItemDataCached() then
-                        SetGemIcon(btn, gemLink, slotFrame, unit, slotId, itemLink)
-                    else
-                        gemItem:ContinueOnItemLoad(function()
-                            if not slotFrame:IsVisible() or GetInventoryItemLink(unit, slotId) ~= itemLink then
-                                return
-                            end
-                            SetGemIcon(btn, gemLink, slotFrame, unit, slotId, itemLink)
-                        end)
-                    end
+                    SetGemIcon(btn, gemLink, slotFrame, unit, slotId, itemLink)
                 else
                     local texture = "Interface\\ItemSocketingFrame\\UI-EmptySocket-Prismatic"
                     if btn.tex:GetTexture() ~= texture then
