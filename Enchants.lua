@@ -59,6 +59,7 @@ function AGI:UpdateEnchants(slotFrame, itemLink, slotId, info, classColor, unit)
                 local cleaned = CleanText(line.leftText)
                 if cleaned and (cleaned:find("^Enchanted:") or cleaned:find("^Enchant:")) then
                     local enchantName = cleaned:gsub("^Enchanted:%s*", ""):gsub("^Enchant:%s*", "")
+                    enchantName = enchantName:gsub("^Enchant%s+.-%s*-%s*", "")
                     btn.fullText = enchantName
                     local truncated = self:TruncateText(enchantName, maxLength)
                     if btn.text:GetText() ~= truncated then
