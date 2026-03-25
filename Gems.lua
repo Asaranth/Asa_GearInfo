@@ -74,6 +74,21 @@ function AGI:UpdateGems(slotFrame, itemLink, info, unit, slotId, attempts)
             end
         end
 
+        local data = C_TooltipInfo.GetInventoryItem(unit, slotId)
+        local tooltipSockets = 0
+        if data then
+            for _, line in ipairs(data.lines) do
+                if line.args then
+                    for _, arg in ipairs(line.args) do
+                        if arg.field == "socketType" then
+                            tooltipSockets = tooltipSockets + 1
+                        end
+                    end
+                end
+            end
+        end
+        numSockets = math.max(numSockets, tooltipSockets)
+
         if not allGemsHandled then
             return
         end
