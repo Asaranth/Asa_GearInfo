@@ -26,13 +26,31 @@ function AGI:TruncateText(text, maxLength)
     return text
 end
 
+function AGI:CleanText(text)
+    if not text or text == "" then return "" end
+    text = text:gsub("||", "|")
+    text = text:gsub("|H.-|h(.-)|h", "%1")
+    text = text:gsub("|A.-|a", "")
+    text = text:gsub("|T.-|t", "")
+    text = text:gsub("|K.-|[kK]", "")
+    text = text:gsub("|[cC][nN].-:", "")
+    text = text:gsub("|[cC]%x%x%x%x%x%x%x%x", "")
+    text = text:gsub("|[rR]", "")
+    text = text:gsub("|[hH]", "")
+    text = text:gsub("|.", "")
+    return strtrim(text)
+end
+
 function AGI:GetItemLevelFromTooltip(unit, slotId)
     local data = C_TooltipInfo.GetInventoryItem(unit, slotId)
     if data then
         for _, line in ipairs(data.lines) do
-            local found = line.leftText and line.leftText:match("Item Level:?%s*(%d+)")
-            if found then
-                return tonumber(found)
+            if line.leftText then
+                local cleaned = self:CleanText(line.leftText)
+                local found = cleaned:match("^Item Level:?%s*(%d+)")
+                if found then
+                    return tonumber(found)
+                end
             end
         end
     end
@@ -48,14 +66,17 @@ function AGI:GetItemLevel(itemLink, unit, slotId)
         return ilvlCache[itemLink]
     end
 
-    local ilvl = self:GetItemLevelFromTooltip(unit, slotId)
+    local ilvl
+    if C_Item.GetAppliedItemLevel then
+        ilvl = C_Item.GetAppliedItemLevel(itemLink)
+    end
+
     if not ilvl then
-        if C_Item.GetAppliedItemLevel then
-            ilvl = C_Item.GetAppliedItemLevel(itemLink)
-        end
-        if not ilvl then
-            ilvl = C_Item.GetDetailedItemLevelInfo(itemLink)
-        end
+        ilvl = self:GetItemLevelFromTooltip(unit, slotId)
+    end
+
+    if not ilvl then
+        ilvl = C_Item.GetDetailedItemLevelInfo(itemLink)
     end
 
     if ilvl then

@@ -5,20 +5,6 @@ local C_Item = C_Item
 local strtrim = strtrim
 local Item = Item
 
-local function CleanText(text)
-    if not text or text == "" then return "" end
-    text = text:gsub("||", "|")
-    text = text:gsub("|H.-|h(.-)|h", "%1")
-    text = text:gsub("|A.-|a", "")
-    text = text:gsub("|T.-|t", "")
-    text = text:gsub("|K.-|[kK]", "")
-    text = text:gsub("|[cC][nN].-:", "")
-    text = text:gsub("|[cC]%x%x%x%x%x%x%x%x", "")
-    text = text:gsub("|[rR]", "")
-    text = text:gsub("|[hH]", "")
-    text = text:gsub("|.", "")
-    return strtrim(text)
-end
 
 function AGI:UpdateEnchants(slotFrame, itemLink, slotId, info, classColor, unit)
     local btn = self:GetEnchantButton(slotFrame)
@@ -56,18 +42,20 @@ function AGI:UpdateEnchants(slotFrame, itemLink, slotId, info, classColor, unit)
         local data = C_TooltipInfo.GetInventoryItem(unit, slotId)
         if data then
             for _, line in ipairs(data.lines) do
-                local cleaned = CleanText(line.leftText)
-                if cleaned and (cleaned:find("^Enchanted:") or cleaned:find("^Enchant:")) then
-                    local enchantName = cleaned:gsub("^Enchanted:%s*", ""):gsub("^Enchant:%s*", "")
-                    enchantName = enchantName:gsub("^Enchant%s+.-%s*-%s*", "")
-                    btn.fullText = enchantName
-                    local truncated = self:TruncateText(enchantName, maxLength)
-                    if btn.text:GetText() ~= truncated then
-                        btn.text:SetText(truncated)
+                if line.leftText then
+                    local cleaned = self:CleanText(line.leftText)
+                    if cleaned and (cleaned:find("^Enchanted:") or cleaned:find("^Enchant:")) then
+                        local enchantName = cleaned:gsub("^Enchanted:%s*", ""):gsub("^Enchant:%s*", "")
+                        enchantName = enchantName:gsub("^Enchant%s+.-%s*-%s*", "")
+                        btn.fullText = enchantName
+                        local truncated = self:TruncateText(enchantName, maxLength)
+                        if btn.text:GetText() ~= truncated then
+                            btn.text:SetText(truncated)
+                        end
+                        btn:SetWidth(btn.text:GetStringWidth() + 5)
+                        btn:Show()
+                        return
                     end
-                    btn:SetWidth(btn.text:GetStringWidth() + 5)
-                    btn:Show()
-                    return
                 end
             end
         end
