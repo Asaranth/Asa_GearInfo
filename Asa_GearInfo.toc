@@ -1,4 +1,4 @@
-## Interface: 120001
+## Interface: 120005
 ## Title: |cFF047857Asa|r Suite: GearInfo
 ## Category-enUS: |cFF047857Asa|r Suite
 ## Notes: Provides information about Ilvl, Durability, Enchants and Gems on the character window.
