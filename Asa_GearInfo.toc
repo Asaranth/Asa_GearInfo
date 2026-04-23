@@ -3,7 +3,7 @@
 ## Category-enUS: |cFF047857Asa|r Suite
 ## Notes: Provides information about Ilvl, Durability, Enchants and Gems on the character window.
 ## Author: Asaranth
-## Version: 1.0.1
+## Version: 1.0.2
 ## SavedVariables: AGI_DB
 ## IconTexture: Interface\AddOns\Asa_GearInfo\Media\logo.png
 ## X-Curse-Project-ID: 1444684
