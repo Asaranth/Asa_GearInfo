@@ -2,7 +2,6 @@ local _, AGI = ...
 local GetInventoryItemLink = GetInventoryItemLink
 local C_TooltipInfo = C_TooltipInfo
 local C_Item = C_Item
-local strtrim = strtrim
 local Item = Item
 
 

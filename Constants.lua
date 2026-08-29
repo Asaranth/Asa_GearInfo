@@ -4,10 +4,8 @@ AGI.DEFAULT_FONT = "Friz Quadrata TT"
 AGI.MAX_GEM_ATTEMPTS = 10
 AGI.TOTAL_ILVL_DIVISOR = 16
 AGI.GEM_MAX_COUNT = 5
-AGI.RIGHT = { anchor = "LEFT", rel = "RIGHT", justify = "LEFT", enchantX = 8, enchantY = 8, gemX = 8, gemY = -12, isRight = true }
-AGI.LEFT = { anchor = "RIGHT", rel = "LEFT", justify = "RIGHT", enchantX = -8, enchantY = 8, gemX = -8, gemY = -12, isRight = false }
-AGI.BELOW_RIGHT = { anchor = "TOPLEFT", rel = "BOTTOMLEFT", justify = "LEFT", enchantX = 0, enchantY = -2, gemX = 2, gemY = -14, isRight = true }
-AGI.BELOW_LEFT = { anchor = "TOPRIGHT", rel = "BOTTOMRIGHT", justify = "RIGHT", enchantX = 0, enchantY = -2, gemX = -2, gemY = -14, isRight = false }
+AGI.RIGHT = { anchor = "LEFT", rel = "RIGHT", justify = "LEFT", enchantX = 4, enchantY = 6, gemX = 4, gemY = -12, isRight = true }
+AGI.LEFT = { anchor = "RIGHT", rel = "LEFT", justify = "RIGHT", enchantX = -4, enchantY = 6, gemX = -4, gemY = -12, isRight = false }
 
 AGI.SLOTS = {
     { id = 1, name = "HeadSlot", align = AGI.RIGHT, gems = 1, enchantable = true },
@@ -26,8 +24,8 @@ AGI.SLOTS = {
     { id = 12, name = "Finger1Slot", align = AGI.LEFT, gems = 1, enchantable = true },
     { id = 13, name = "Trinket0Slot", align = AGI.LEFT, gems = 0, enchantable = false },
     { id = 14, name = "Trinket1Slot", align = AGI.LEFT, gems = 0, enchantable = false },
-    { id = 16, name = "MainHandSlot", align = AGI.BELOW_LEFT, gems = 0, enchantable = true },
-    { id = 17, name = "SecondaryHandSlot", align = AGI.BELOW_RIGHT, gems = 0, enchantable = true },
+    { id = 16, name = "MainHandSlot", align = AGI.LEFT, gems = 0, enchantable = true },
+    { id = 17, name = "SecondaryHandSlot", align = AGI.RIGHT, gems = 0, enchantable = true },
 }
 
 AGI.DURABILITY_THRESHOLDS = {
